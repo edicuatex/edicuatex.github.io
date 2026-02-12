@@ -247,6 +247,10 @@ async function initializeLatexEditor() {
     };
 
     const loadAddedMenusFromStorage = () => JSON.parse(localStorage.getItem('latexAddedMenus')) || [];
+    const loadDisabledMenusFromStorage = () => JSON.parse(localStorage.getItem('latexDisabledMenus')) || [];
+    const saveDisabledMenusToStorage = (disabledIds) => {
+        localStorage.setItem('latexDisabledMenus', JSON.stringify(Array.from(disabledIds)));
+    };
 
     const resolveMenuUrl = (rawUrl) => {
         if (!rawUrl) return rawUrl;
@@ -281,6 +285,8 @@ async function initializeLatexEditor() {
         const data = await fetchMenuData(resolvedUrl);
         if (data) {
             loadedMenus.set(menuInfo.id, { ...menuInfo, url: resolvedUrl, data });
+            const disabled = new Set(loadDisabledMenusFromStorage());
+            if (disabled.delete(menuInfo.id)) saveDisabledMenusToStorage(disabled);
             rebuildToolbarAndUI();
             saveAddedMenusToStorage();
         }
@@ -288,7 +294,14 @@ async function initializeLatexEditor() {
     
     const removeMenu = (menuId) => {
         if (loadedMenus.has(menuId)) {
+            const menu = loadedMenus.get(menuId);
             loadedMenus.delete(menuId);
+            // Persist explicit user disables for default/manifest/url menus.
+            if (menu && menu.source !== 'localfile') {
+                const disabled = new Set(loadDisabledMenusFromStorage());
+                disabled.add(menuId);
+                saveDisabledMenusToStorage(disabled);
+            }
             rebuildToolbarAndUI();
             saveAddedMenusToStorage();
         }
@@ -475,8 +488,6 @@ async function initializeLatexEditor() {
         latexInput.selectionStart = latexInput.selectionEnd = startPos + (cursorPos !== -1 ? cursorPos + 1 : textToInsert.length);
         latexInput.focus();
         updatePreview();
-        if (textToInsert.includes('\\begin{')) return;
-        trackSymbolUsage(textToInsert);
     }
 
     function computeWrappedLatex(raw) {
@@ -592,6 +603,8 @@ async function initializeLatexEditor() {
                 
                 // 2. Use the translated version for the data-latex attribute (what gets inserted).
                 button.dataset.latex = translatedLatex;
+                // Canonical key so Recents can resolve the original menu element.
+                button.dataset.recentKey = elemento.latex;
                 
                 // 3. Use the translated version for the button's visible content.
                 button.innerHTML = `\\(${translatedLatex}\\)`;
@@ -687,6 +700,7 @@ async function initializeLatexEditor() {
         loadRecents();
         loadedMenus.clear();
         menuCache.clear();
+        const disabledMenus = new Set(loadDisabledMenusFromStorage());
         let manifestMenus = [];
         try {
             const manifestResponse = await fetch(MANIFEST_URL);
@@ -698,7 +712,7 @@ async function initializeLatexEditor() {
             showAlert('Error', `Could not load <code>menus.json</code>.`);
         }
         const BASE_NAME = 'base.json';
-        if (manifestMenus.find(m => m.file === BASE_NAME)) {
+        if (manifestMenus.find(m => m.file === BASE_NAME) && !disabledMenus.has(BASE_NAME)) {
             const baseUrl = resolveMenuUrl(BASE_NAME);
             const data = await fetchMenuData(baseUrl);
             if (data) loadedMenus.set(BASE_NAME, { id: BASE_NAME, url: baseUrl, source: 'default', name: 'Base', data });
@@ -706,6 +720,7 @@ async function initializeLatexEditor() {
         const previouslyAdded = loadAddedMenusFromStorage();
         for (const menuInfo of previouslyAdded) {
             if (menuInfo.id === BASE_NAME && loadedMenus.has(BASE_NAME)) continue;
+            if (disabledMenus.has(menuInfo.id)) continue;
             const data = await fetchMenuData(menuInfo.url);
             if (data) loadedMenus.set(menuInfo.id, { ...menuInfo, data });
         }
@@ -717,7 +732,12 @@ async function initializeLatexEditor() {
 
     // --- EVENT LISTENERS ---
     latexInput.addEventListener('input', updatePreview);
-    toolbar.addEventListener('click', (event) => { const btn = event.target.closest('.toolbar-btn'); if (btn && btn.dataset.latex) insertAtCursor(btn.dataset.latex); });
+    toolbar.addEventListener('click', (event) => {
+        const btn = event.target.closest('.toolbar-btn');
+        if (!btn || !btn.dataset.latex) return;
+        insertAtCursor(btn.dataset.latex);
+        trackSymbolUsage(btn.dataset.recentKey || btn.dataset.latex);
+    });
     tabsContainer.addEventListener('click', handleTabSwitch);
     clearSearchBtn.addEventListener('click', () => { searchInput.value = ''; searchInput.dispatchEvent(new Event('input', { bubbles: true })); searchInput.focus(); });
     copyButton.addEventListener('click', () => {
