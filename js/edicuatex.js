@@ -4,22 +4,45 @@ let _ = str => str;
 // --- Language & UI Update Functions ---
 function setupLanguageSelector() {
     const languageSelector = document.getElementById('language-selector');
-    if (!languageSelector || isInExe) return;
+    const languageToggle = document.getElementById('language-toggle');
+    const languageDropdown = document.getElementById('language-dropdown');
+    const languageOptions = Array.from(document.querySelectorAll('.language-option'));
+    if (!languageSelector || !languageToggle || !languageDropdown || languageOptions.length === 0 || isInExe) return;
 
     languageSelector.style.display = 'flex';
-    const langButtons = document.querySelectorAll('.lang-btn');
-    const currentLang = document.documentElement.lang;
+    const updateLanguageUI = lang => {
+        languageOptions.forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
+    };
+    updateLanguageUI(document.documentElement.lang);
 
-    langButtons.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.lang === currentLang);
-        btn.addEventListener('click', () => changeLanguage(btn.dataset.lang));
+    languageToggle.addEventListener('click', e => {
+        e.stopPropagation();
+        languageDropdown.classList.toggle('open');
+    });
+
+    languageOptions.forEach(btn => {
+        btn.addEventListener('click', () => {
+            changeLanguage(btn.dataset.lang);
+            updateLanguageUI(btn.dataset.lang);
+            languageDropdown.classList.remove('open');
+        });
+    });
+
+    document.addEventListener('click', e => {
+        if (!languageSelector.contains(e.target)) {
+            languageDropdown.classList.remove('open');
+        }
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') languageDropdown.classList.remove('open');
     });
 }
 
 function changeLanguage(newLang) {
     document.documentElement.lang = newLang;
     localStorage.setItem('userLanguage', newLang);
-    document.querySelectorAll('.lang-btn').forEach(btn => {
+    document.querySelectorAll('.language-option').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.lang === newLang);
     });
     updateAllDynamicTexts();
