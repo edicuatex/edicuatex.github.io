@@ -30,7 +30,7 @@ function escapeHtml(str) {
 
 // Load translations
 async function loadTranslations() {
-    //Validate appLang length (must be 2 characters)
+    // Validate appLang length (must be 2 characters)
     let safeLang = appLang;
     if (appLang.length !== 2) {
         console.warn(`Invalid language code "${appLang}", falling back to 'en'`);
@@ -44,7 +44,7 @@ async function loadTranslations() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const bundle = await response.json();
-        //Verify the property exists and is safe
+        // Verify the property exists and is safe
         if (bundle && bundle.translations && Object.prototype.hasOwnProperty.call(bundle.translations, safeLang)) {
             const langData = bundle.translations[safeLang];
             const translations = langData.translations || langData;
@@ -60,14 +60,62 @@ async function loadTranslations() {
                 isInExe = true;
                 console.log(`Translations loaded from eXeLearning bundle for language: ${safeLang}`);
             } else {
-                console.warn('Invalid translations object structure');
+				// Attempting to load translations from API
+                await loadFromApi(safeLang);
             }
         } else {
-            console.warn(`No translations found in bundle for language: ${safeLang}`);
+			// Attempting to load translations from API
+            await loadFromApi(safeLang);
         }
     } catch (e) {
-        console.log('Could not load eXeLearning translations');
+		// Attempting to load translations from API
+        await loadFromApi(safeLang);
 
+    }
+}
+
+// Load translation file from API
+async function loadFromApi(locale) {
+    try {
+        const apiUrl = `/api/translations/${locale}`;      
+        const response = await fetch(apiUrl);        
+        if (!response.ok) {
+            throw new Error(`API HTTP error! status: ${response.status}`);
+        }        
+        const data = await response.json();        
+        // Extract translations from the API response
+        // Adjust this according to your API's response structure
+        let translations = null;        
+        if (data && typeof data === 'object') {
+            // If the API returns { translations: {...} }
+            if (data.translations && typeof data.translations === 'object') {
+                translations = data.translations;
+            } 
+            // If the API returns the translations object directly
+            else if (data.constructor === Object && !data.error) {
+                translations = data;
+            }
+        }        
+        // Verify that we have valid translations
+        if (translations && typeof translations === 'object' && translations.constructor === Object) {
+            window._ = function(str) {
+                if (typeof str !== 'string') return str;
+                return Object.prototype.hasOwnProperty.call(translations, str) 
+                    ? translations[str] 
+                    : str;
+            };
+            isInExe = true;
+            console.log(`Translations loaded from API for language: ${locale}`);
+        } else {
+            //Invalid translations structure from API;
+        }
+    } catch (apiError) {
+        // Final fallback: function that returns the original string
+        window._ = function(str) {
+            return typeof str === 'string' ? str : str;
+        };
+        isInExe = false;
+        console.warn('Using fallback translation function');
     }
 }
 
