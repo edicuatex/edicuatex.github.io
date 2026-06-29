@@ -1,82 +1,119 @@
 /* LANGUAGE TOOLS */
+// Safe check for parent context
+const hasParent = typeof parent !== 'undefined' && parent !== window;
+
 // Define the object that will hold the translations
-$i18n = {};
+window.$i18n = window.$i18n || {};
+
 // Check if it's in eXe and translate (if possible)
-let isInExe = parent && typeof(parent.eXeLearning) == 'object' && typeof(parent.tinymce) == 'object' && typeof(parent.jQuery) == 'function';
+let isInExe = false;
+try {
+    isInExe = hasParent &&
+        typeof parent.eXeLearning === 'object' &&
+        typeof parent.tinymce === 'object' &&
+        typeof parent.jQuery === 'function';
+} catch (e) {
+    console.warn('Cannot access parent context (cross-origin restriction):', e);
+}
+
+// Global placeholder for the translation function
+window._ = function(str) {
+    return str;
+};
+
 if (isInExe) {
     document.documentElement.className = 'exelearning';
-    // Set HTML lang (eXe's lang)
-    document.documentElement.lang = parent.eXeLearning.app.locale.lang;
+
+    // Safe access to eXe's language
+    try {
+        if (parent.eXeLearning?.app?.locale?.lang) {
+            document.documentElement.lang = parent.eXeLearning.app.locale.lang;
+        }
+    } catch (e) {
+        console.warn('Cannot access eXeLearning language:', e);
+    }
+
     // Use eXe's _ function to translate
-    _ = parent._;            
+    try {
+        if (typeof parent._ === 'function') {
+            window._ = parent._;
+        }
+    } catch (e) {
+        console.warn('Cannot access parent translation function:', e);
+    }
 } else {
-    // Not in eXe (_ is required)
-    _ = function(str) {
-        return str;
-    }
-    // Setup for standalone execution (browser language detection or localStorage)
-    const savedLang = localStorage.getItem('userLanguage');
-    const browserLang = navigator.language.split('-')[0];
+    // Setup for standalone execution
     const supportedLangs = ['en', 'es', 'ca', 'gl', 'eu', 'de'];
+
+    /**
+     * Get language parameter from URL
+     * @returns {string} Language code or empty string
+     */
     function getLangParam() {
-        var result = "",
-            tmp = [];
-        location.search
-            .substr(1)
-            .split("&")
-            .forEach(function (item) {
-              tmp = item.split("=");
-              if (tmp[0] === 'lang') result = decodeURIComponent(tmp[1]);
-            });
-        return result;
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const lang = urlParams.get('lang') || '';
+
+            //Sanitize: only allow alphanumeric characters and hyphens
+            const sanitized = lang.replace(/[^a-zA-Z0-9-]/g, '');
+
+            return sanitized;
+        } catch (e) {
+            return '';
+        }
     }
-    let defaultLang = savedLang || (supportedLangs.includes(browserLang) ? browserLang : 'en');
+
+    /**
+     * Get saved language from localStorage
+     * @returns {string|null} Saved language or null
+     */
+    function getSavedLang() {
+        try {
+            return localStorage.getItem('userLanguage');
+        } catch (e) {
+            console.warn('localStorage not available:', e);
+            return null;
+        }
+    }
+
+    /**
+     * Detect browser language
+     * @returns {string} Browser language code
+     */
+    function getBrowserLang() {
+        try {
+            const browserLang = navigator.language?.split('-')[0] || 'en';
+            return supportedLangs.includes(browserLang) ? browserLang : 'en';
+        } catch (e) {
+            return 'en';
+        }
+    }
+
+    // Determine default language with priority: URL > localStorage > Browser > English
     const urlLang = getLangParam();
-    if (urlLang != "") defaultLang = urlLang;
+    const savedLang = getSavedLang();
+    const browserLang = getBrowserLang();
+    let defaultLang = 'en';
+    if (urlLang && supportedLangs.includes(urlLang)) {
+        defaultLang = urlLang;
+    } else if (savedLang && supportedLangs.includes(savedLang)) {
+        defaultLang = savedLang;
+    } else {
+        defaultLang = browserLang;
+    }
+
     document.documentElement.lang = defaultLang;
 }
-// Redefine _ function once the DOM is loaded and $i18n is available
-document.addEventListener("DOMContentLoaded", function() {
-    _ = function(str){
-        let res = str;
-        let appLang = document.documentElement.lang;
-        // Default language (en)
-        let translations = $i18n['eXe'];
-        // Check if local translation exists
-        if (typeof $i18n[appLang] == 'object') translations = $i18n[appLang];
-        // Return local translation if available
-        if (typeof translations[str] == 'string') return translations[str];
-        // Use eXe's translation if needed
-        if (isInExe) return parent._(str);
-        // Otherwite, return the original string
-        return res;
-    }
 
-    // After defining _, update all texts
-    if (!isInExe) {
-        if (typeof setupLanguageSelector === 'function') {
-            setupLanguageSelector();
-        }
-    } else {
-        const editorLink = document.getElementById('menu-editor-link');
-        if (editorLink) editorLink.href = editorLink.href + '?lang=' + document.documentElement.lang;
-    }
-    if (typeof updateAllDynamicTexts === 'function') {
-        updateAllDynamicTexts();
-    }
-    if (typeof addFooter === 'function') {
-        addFooter(); // Ensure footer is translated on load
-    }
-});
-
-/* MATHJAX */
+/* MATHJAX CONFIGURATION */
 window.MathJax = {
     loader: {
         load: ['[tex]/color', '[tex]/mhchem']
     },
     tex: {
         inlineMath: [
-            ['\\(', '\\)']],
+            ['\\(', '\\)']
+        ],
         displayMath: [
             ['$$', '$$'],
             ['\\[', '\\]']
@@ -92,14 +129,65 @@ window.MathJax = {
     startup: {
         ready: () => {
             MathJax.startup.defaultReady();
-            // This function is defined below in the main script
-            if (window.initializeLatexEditor) {
-                window.initializeLatexEditor();
+            if (typeof window.initializeLatexEditor === 'function') {
+                try {
+                    window.initializeLatexEditor();
+                } catch (e) {
+                    console.error('Error initializing LaTeX editor:', e);
+                }
             }
         }
     }
 };
-document.addEventListener("DOMContentLoaded", function() {
+
+/**
+ * Resolve MathJax URL based on context
+ * @returns {string} Resolved MathJax URL
+ */
+function getMathJaxUrl() {
+    const defaultUrl = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js";
+
+    if (!isInExe) {
+        return defaultUrl;
+    }
+
+    try {
+        if (!parent?.tinymce?.activeEditor?.settings?.edicuatex_mathjax_url) {
+            console.warn('MathJax URL not configured in eXe, using default');
+            return defaultUrl;
+        }
+
+        let url = parent.tinymce.activeEditor.settings.edicuatex_mathjax_url;
+
+        // Detect app base path from edicuatex iframe URL for subdirectory deployments
+        const pathname = window.location.pathname;
+        const appIndex = pathname.indexOf('/app/');
+        const appBasePath = appIndex > 0 ? pathname.substring(0, appIndex) : '';
+
+        // Handle different URL formats
+        if (url.startsWith('/')) {
+            if (appBasePath && url.startsWith(appBasePath)) {
+                return window.location.origin + url;
+            } else {
+                return window.location.origin + appBasePath + url;
+            }
+        } else if (url.startsWith('./')) {
+            return window.location.origin + appBasePath + '/' + url.substring(2);
+        } else if (url.startsWith('http://') || url.startsWith('https://')) {
+            return url;
+        } else {
+            return window.location.origin + appBasePath + '/' + url;
+        }
+    } catch (e) {
+        console.warn('Error resolving MathJax URL, using default:', e);
+        return defaultUrl;
+    }
+}
+
+/**
+ * Load MathJax script
+ */
+function loadMathJax() {
     var url = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js";
     if (isInExe) {
         url = parent.tinymce.activeEditor.settings.edicuatex_mathjax_url;
@@ -134,9 +222,61 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
     var s;
-        s = document.createElement("script");
-        s['async'] = "";
-        s.id = "MathJax-script";
-        s.src = url;
+    s = document.createElement("script");
+    s['async'] = "";
+    s.id = "MathJax-script";
+    s.src = url;
     document.getElementsByTagName("head")[0].appendChild(s);
+}
+
+/* DOMCONTENTLOADED EVENT */
+document.addEventListener("DOMContentLoaded", function() {
+    // Save reference to the initial translation function
+    const originalTranslationFn = window._;
+
+    /**
+     * Redefine window._ with complete translation logic
+     * In iframe mode: ALWAYS use parent._() from eXeLearning
+     * In standalone mode: use local $i18n translations
+     * @param {string} str - String to translate
+     * @returns {string} Translated string
+     */
+    window._ = function(str) {
+        if (!str) return str;
+
+        // IFRAME MODE: Always use parent._() from eXeLearning
+        if (isInExe && typeof originalTranslationFn === 'function') {
+            try {
+                return originalTranslationFn(str);
+            } catch (e) {
+                console.warn('Translation failed in eXe context:', e);
+                return str;
+            }
+        }
+
+        // STANDALONE MODE: Use local $i18n translations
+        const appLang = document.documentElement.lang;
+
+        if (window.$i18n && typeof window.$i18n === 'object') {
+            // Try language-specific translations first
+            if (window.$i18n[appLang] && typeof window.$i18n[appLang] === 'object') {
+                if (typeof window.$i18n[appLang][str] === 'string') {
+                    return window.$i18n[appLang][str];
+                }
+            }
+
+            // Fallback to default 'eXe' translations
+            if (window.$i18n['eXe'] && typeof window.$i18n['eXe'] === 'object') {
+                if (typeof window.$i18n['eXe'][str] === 'string') {
+                    return window.$i18n['eXe'][str];
+                }
+            }
+        }
+
+        // Otherwise, return the original string
+        return str;
+    };
+
+    // Load MathJax
+    loadMathJax();
 });
