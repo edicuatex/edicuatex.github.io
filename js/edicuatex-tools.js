@@ -38,6 +38,11 @@ if (isInExe) {
 // Redefine _ function once the DOM is loaded and $i18n is available
 document.addEventListener("DOMContentLoaded", function() {
     _ = function(str){
+        // Prioritize eXe's translation
+        if (isInExe && typeof parent._ === 'function') {
+            let exeTranslation = parent._(str);
+            if (exeTranslation !== str) return exeTranslation;
+        }
         let res = str;
         let appLang = document.documentElement.lang;
         // Default language (en)
@@ -46,8 +51,6 @@ document.addEventListener("DOMContentLoaded", function() {
         if (typeof $i18n[appLang] == 'object') translations = $i18n[appLang];
         // Return local translation if available
         if (typeof translations[str] == 'string') return translations[str];
-        // Use eXe's translation if needed
-        if (isInExe) return parent._(str);
         // Otherwite, return the original string
         return res;
     }
