@@ -11,6 +11,7 @@ $i18n['de'] = {
     'Clear search': 'Suche löschen',
     'Customize menu': 'Menü anpassen',
     'Fullscreen': 'Vollbild',
+    'Exit fullscreen': 'Vollbild beenden',
     'Recent': 'Jüngste',
     'LaTeX Code': 'LaTeX-Code',
     'Ask AI for formula': 'Fragen Sie die KI nach einer Formel',

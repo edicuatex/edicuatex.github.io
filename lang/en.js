@@ -13,6 +13,7 @@ $i18n['eXe'] = {
     'Clear search': _('Clear search'),
     'Customize menu': _('Customize menu'),
     'Fullscreen': _('Fullscreen'),
+    'Exit fullscreen': _('Exit fullscreen'),
     'Recent': _('Recent'),
     // === INDEX.HTML - MAIN HEADER & FOOTERLATEX CODE PANEL ===
     'LaTeX Code': _('LaTeX Code'),

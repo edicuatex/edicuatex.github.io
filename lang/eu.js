@@ -11,6 +11,7 @@ $i18n['eu'] = {
     'Clear search': 'Garbitu bilaketa',
     'Customize menu': 'Pertsonalizatu menua',
     'Fullscreen': 'Pantaila osoa',
+    'Exit fullscreen': 'Irten pantaila osotik',
     'Recent': 'Duela gutxi',
     'LaTeX Code': 'LaTeX kodea',
     'Ask AI for formula': 'Eskatu AI formula',

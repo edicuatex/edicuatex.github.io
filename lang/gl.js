@@ -11,6 +11,7 @@ $i18n['gl'] = {
     'Clear search': 'Limpar procura',
     'Customize menu': 'Personalizar menú',
     'Fullscreen': 'Pantalla completa',
+    'Exit fullscreen': 'Saír da pantalla completa',
     'Recent': 'Recentes',
     'LaTeX Code': 'Código LaTeX',
     'Ask AI for formula': 'Pedir fórmula á IA',

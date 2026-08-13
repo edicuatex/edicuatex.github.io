@@ -72,6 +72,7 @@ function updateAllDynamicTexts() {
     });
     document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = _(el.getAttribute('data-i18n-title')));
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = _(el.getAttribute('data-i18n-placeholder')));
+    document.querySelectorAll('[data-i18n-alt]').forEach(el => el.alt = _(el.getAttribute('data-i18n-alt')));
     
     // Rebuild UI parts that are created dynamically
     if (window.rebuildToolbarAndUI) {
@@ -865,11 +866,24 @@ async function initializeLatexEditor() {
     maximizeBtn.addEventListener('click', () => {
         if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen().catch(err => console.log(err));
-            maximizeBtn.textContent = '🗗';
         } else {
             document.exitFullscreen();
-            maximizeBtn.textContent = '🗖';
         }
+    });
+    // Keep the icon in sync with the actual state, which can also change
+    // without clicking the button (Esc, F11)
+    document.addEventListener('fullscreenchange', () => {
+        const icon = document.getElementById('maximize-icon');
+        if (!icon) return;
+        const inFullscreen = !!document.fullscreenElement;
+        icon.src = inFullscreen
+            ? 'icons/zoom_in_map_24dp_0B439EFF_FILL0_wght400_GRAD0_opsz24.svg'
+            : 'icons/zoom_out_map_24dp_0B439EFF_FILL0_wght400_GRAD0_opsz24.svg';
+        const key = inFullscreen ? 'Exit fullscreen' : 'Fullscreen';
+        icon.setAttribute('data-i18n-alt', key);
+        maximizeBtn.setAttribute('data-i18n-title', key);
+        icon.alt = _(key);
+        maximizeBtn.title = icon.alt;
     });
 
     // Start the application

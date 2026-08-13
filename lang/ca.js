@@ -13,6 +13,7 @@ $i18n['ca'] = {
     'Clear search': 'Neteja la cerca',
     'Customize menu': 'Personalitza el menú',
     'Fullscreen': 'Pantalla completa',
+    'Exit fullscreen': 'Surt de pantalla completa',
     'Recent': 'Recents',
     // === INDEX.HTML - MAIN HEADER & FOOTERLATEX CODE PANEL ===
     'LaTeX Code': 'Codi LaTeX',
