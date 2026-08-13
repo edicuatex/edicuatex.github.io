@@ -72,7 +72,6 @@ function updateAllDynamicTexts() {
     });
     document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = _(el.getAttribute('data-i18n-title')));
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = _(el.getAttribute('data-i18n-placeholder')));
-    document.querySelectorAll('[data-i18n-alt]').forEach(el => el.alt = _(el.getAttribute('data-i18n-alt')));
     document.querySelectorAll('[data-i18n-aria-label]').forEach(el => el.setAttribute('aria-label', _(el.getAttribute('data-i18n-aria-label'))));
     
     // Rebuild UI parts that are created dynamically
