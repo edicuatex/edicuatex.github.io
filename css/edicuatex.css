@@ -235,17 +235,20 @@ a {
     margin-top: -3px;
 }
 
-#maximize-btn img {
+/* Masked SVG icons: the shape comes from the file, the color from currentColor,
+   so they follow the button's own color (and its hover state) */
+.icon {
     width: 24px;
     height: 24px;
     display: block;
+    background-color: currentColor;
+    -webkit-mask: var(--icon-url) center / contain no-repeat;
+            mask: var(--icon-url) center / contain no-repeat;
 }
 
-#settings-btn img {
-    width: 24px;
-    height: 24px;
-    display: block;
-}
+.icon-settings { --icon-url: url("../icons/settings.svg"); }
+.icon-fullscreen { --icon-url: url("../icons/fullscreen.svg"); }
+.icon-fullscreen-exit { --icon-url: url("../icons/fullscreen-exit.svg"); }
 
 #settings-btn:hover, #maximize-btn:hover {
     color: var(--primary-color);
