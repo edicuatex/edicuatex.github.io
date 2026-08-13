@@ -252,7 +252,16 @@ a {
 
 #settings-btn:hover, #maximize-btn:hover {
     color: var(--primary-color);
+}
+
+/* The gear turns on hover; the fullscreen arrows only grow, since rotating
+   them 45deg would leave the diagonals standing in a cross */
+#settings-btn:hover {
     transform: rotate(45deg);
+}
+
+#maximize-btn:hover {
+    transform: scale(1.1);
 }
 
 #menu-toggler-btn {
@@ -262,10 +271,6 @@ a {
 #menu-toggler-btn:hover {
     color: var(--primary-color);
     transform: scale(1);
-}
-
-#maximize-btn:hover {
-     transform: scale(1.1);
 }
 
 .search-results-view .tabs-container {
