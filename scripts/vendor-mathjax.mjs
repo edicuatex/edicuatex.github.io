@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /**
- * Copies MathJax out of node_modules into js/mathjax/, where the pages look for
- * it before falling back to the CDN (see js/edicuatex-tools.js). Run it once
- * after `npm install` to serve the editor with no external requests.
+ * Regenerates js/mathjax/, the copy of MathJax the pages load (see
+ * js/edicuatex-tools.js). That directory IS committed, so the editor serves
+ * itself with no external request and a plain clone works offline; this script
+ * only has to be run when the pinned versions in package.json change:
  *
  *   npm install && npm run vendor
  *
- * The result is not committed: it is ~29 MB and reproducible from the pinned
- * versions in package.json.
+ * Only the SVG path is copied. The full package is ~29 MB, most of it the CHTML
+ * output the editor never selects and the combined bundles it never loads; what
+ * is kept is ~18 MB on disk and ~3.4 MB in git.
  */
 import { cpSync, mkdirSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -25,10 +27,21 @@ function copy(from, to) {
 
 rmSync(target, { recursive: true, force: true });
 
-// The whole package, not just tex-svg.js: MathJax resolves its TeX extensions,
-// speech rules and menu against the directory of the #MathJax-script tag and
-// fetches them when a formula first needs one.
-copy('mathjax', '.');
+// tex-svg.js is the only bundle the <script> tag loads; the rest is what MathJax
+// resolves against that directory and fetches when a formula first needs it.
+for (const file of ['tex-svg.js', 'loader.js', 'startup.js', 'core.js', 'LICENSE']) {
+    copy(join('mathjax', file), file);
+}
+copy('mathjax/input', 'input');   // TeX extensions: cases, color, mathtools, mhchem
+copy('mathjax/output', 'output');
+copy('mathjax/ui', 'ui');         // context menu
+
+// Accessibility. assistive-mml (the hidden MathML every screen reader reads) is
+// already inside tex-svg.js; these add the spoken descriptions, the keyboard
+// explorer and Nemeth braille, with speech rules for es, ca, de among others.
+// Nothing here is downloaded unless a reader opens the accessibility menu.
+copy('mathjax/a11y', 'a11y');
+copy('mathjax/sre', 'sre');
 
 // MathJax 4 splits its font into a base set inside the bundle plus ~40 glyph
 // ranges fetched on first use, and mhchem's glyphs moved into a package of

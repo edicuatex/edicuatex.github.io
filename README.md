@@ -147,23 +147,25 @@ Example:
 
 ---
 
-## Self-hosted MathJax (no CDN)
+## MathJax
 
-The editor loads MathJax from a CDN. To serve it from your own site instead —
-for an intranet, an offline machine, or a page whose CSP allows no external
-origins — copy it out of npm:
+MathJax is served from this repository, under `js/mathjax/`. Nothing is fetched
+from a CDN, so the editor makes no third-party request, works on an intranet or
+an offline machine, and runs under a CSP that allows no external origins. Clone
+and serve: there is no build step and nothing to configure.
+
+The directory holds the SVG path only (~18 MB): the bundle, the TeX extensions,
+the glyph ranges MathJax 4 fetches on demand, and the accessibility engine with
+speech rules for several languages. None of the accessibility payload is
+downloaded unless a reader opens MathJax's accessibility menu.
+
+To upgrade, change the versions in `package.json`, keep the CDN fallback URL in
+`js/edicuatex-tools.js` on the same one, and regenerate the directory:
 
 ```bash
 npm install
 npm run vendor
 ```
-
-That fills `js/mathjax/` (~29 MB, not committed), and the pages use it
-automatically: they try the local copy first and fall back to the CDN when it is
-not there, so a plain checkout keeps working with no setup.
-
-To upgrade, change the versions in `package.json`, keep the URL in
-`js/edicuatex-tools.js` on the same one, and run the two commands again.
 
 ---
 

@@ -74,10 +74,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
 /* MATHJAX */
 // Where MathJax comes from when the editor runs on its own (inside eXe the host
-// says, see below). The self-hosted copy is created by `npm install && npm run
-// vendor` and is not committed, so a plain checkout has none and falls back to
-// the CDN; that fallback is a real 404 on the way, which is the price of the
-// deployment not having to be told which of the two it is.
+// says, see below). js/mathjax/ is committed, so this is what every deployment
+// uses and nothing leaves the origin; the CDN stays as a fallback for a partial
+// checkout or a copy served without that directory.
 // Resolved against this file's own URL so index.html and menus/editor.html,
 // which sit at different depths, both find it.
 var MATHJAX_LOCAL_URL = new URL('mathjax/tex-svg.js', document.currentScript.src).href;

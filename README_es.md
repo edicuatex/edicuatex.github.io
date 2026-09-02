@@ -147,23 +147,27 @@ Ejemplo:
 
 ---
 
-## MathJax en local (sin CDN)
+## MathJax
 
-El editor carga MathJax desde un CDN. Para servirlo desde tu propio sitio —una
-intranet, un equipo sin conexión o una página cuya CSP no permite orígenes
-externos— cópialo desde npm:
+MathJax se sirve desde este mismo repositorio, en `js/mathjax/`. No se descarga
+nada de ningún CDN, así que el editor no hace ninguna petición a terceros,
+funciona en una intranet o en un equipo sin conexión, y se ejecuta bajo una CSP
+que no permita orígenes externos. Basta con clonar y servir: no hay compilación
+ni nada que configurar.
+
+El directorio contiene solo la ruta SVG (~18 MB): el paquete principal, las
+extensiones de TeX, los rangos de glifos que MathJax 4 pide bajo demanda y el
+motor de accesibilidad con reglas de voz en varios idiomas. Nada de la parte de
+accesibilidad se descarga salvo que alguien abra el menú de accesibilidad de
+MathJax.
+
+Para actualizar, cambia las versiones en `package.json`, deja en la misma la URL
+del CDN de respaldo en `js/edicuatex-tools.js` y regenera el directorio:
 
 ```bash
 npm install
 npm run vendor
 ```
-
-Eso rellena `js/mathjax/` (~29 MB, no versionado) y las páginas lo usan solas:
-primero prueban la copia local y recurren al CDN si no está, así que una copia
-recién clonada sigue funcionando sin configurar nada.
-
-Para actualizar, cambia las versiones en `package.json`, deja la URL de
-`js/edicuatex-tools.js` en la misma y vuelve a ejecutar los dos comandos.
 
 ---
 

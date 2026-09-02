@@ -4,5 +4,3 @@ agents.md
 
 # npm
 node_modules/
-# MathJax copied from node_modules by `npm run vendor` (see scripts/vendor-mathjax.mjs)
-js/mathjax/
