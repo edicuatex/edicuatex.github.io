@@ -147,6 +147,26 @@ Example:
 
 ---
 
+## Self-hosted MathJax (no CDN)
+
+The editor loads MathJax from a CDN. To serve it from your own site instead —
+for an intranet, an offline machine, or a page whose CSP allows no external
+origins — copy it out of npm:
+
+```bash
+npm install
+npm run vendor
+```
+
+That fills `js/mathjax/` (~29 MB, not committed), and the pages use it
+automatically: they try the local copy first and fall back to the CDN when it is
+not there, so a plain checkout keeps working with no setup.
+
+To upgrade, change the versions in `package.json`, keep the URL in
+`js/edicuatex-tools.js` on the same one, and run the two commands again.
+
+---
+
 ## License
 
 - Code: GNU AGPL v3. See `LICENSE.txt`.
