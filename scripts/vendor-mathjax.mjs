@@ -12,16 +12,29 @@
  * is kept is ~18 MB on disk and ~3.4 MB in git.
  */
 import { cpSync, mkdirSync, rmSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const require = createRequire(import.meta.url);
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const target = join(root, 'js', 'mathjax');
 
+// Resolved through node's own lookup rather than assuming node_modules sits
+// next to this script: when the package is installed as a dependency npm hoists
+// mathjax to the consumer's top-level node_modules, and joining a path here
+// would miss it.
+function packageDir(name) {
+    return dirname(require.resolve(name + '/package.json'));
+}
+
 function copy(from, to) {
+    const slash = from.indexOf('/', from.startsWith('@') ? from.indexOf('/') + 1 : 0);
+    const pkg = slash === -1 ? from : from.slice(0, slash);
+    const rest = slash === -1 ? '' : from.slice(slash + 1);
     const destination = join(target, to);
     mkdirSync(dirname(destination), { recursive: true });
-    cpSync(join(root, 'node_modules', from), destination, { recursive: true });
+    cpSync(join(packageDir(pkg), rest), destination, { recursive: true });
     console.log('js/mathjax/' + to);
 }
 
