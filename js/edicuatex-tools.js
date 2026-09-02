@@ -73,20 +73,25 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 /* MATHJAX */
+// Where MathJax comes from when the editor runs on its own (inside eXe the host
+// says, see below). The self-hosted copy is created by `npm install && npm run
+// vendor` and is not committed, so a plain checkout has none and falls back to
+// the CDN; that fallback is a real 404 on the way, which is the price of the
+// deployment not having to be told which of the two it is.
+// Resolved against this file's own URL so index.html and menus/editor.html,
+// which sit at different depths, both find it.
+var MATHJAX_LOCAL_URL = new URL('mathjax/tex-svg.js', document.currentScript.src).href;
+var MATHJAX_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-svg.min.js';
+
 window.MathJax = {
     loader: {
         // 'cases' and 'mathtools' are listed in tex.packages below, but nothing
         // ever loaded them: MathJax 3 stayed quiet about it and \begin{numcases}
         // failed, MathJax 4 warns on the console. Load what the config claims.
         load: ['[tex]/cases', '[tex]/color', '[tex]/mathtools', '[tex]/mhchem'],
-        // MathJax 4 fetches the glyph ranges of its font (\mathbb, \mathcal,
-        // stretchy arrows, the mhchem glyphs...) the first time a formula needs
-        // them, and the default source is https://cdn.jsdelivr.net/npm/@mathjax.
-        // eXeLearning keeps its own copy under exe_math/fonts so nothing leaves
-        // the origin in an exported package; standalone we load MathJax from a
-        // CDN that has no such directory, so the default is what works there.
-        // Mirrors eXeLearning's public/app/common/common.js.
-        paths: isInExe ? { fonts: '[mathjax]/fonts' } : {}
+        // Filled in by loadMathJax(), which only knows where the glyph ranges
+        // are once it knows which copy of MathJax answered.
+        paths: {}
     },
     tex: {
         inlineMath: [
@@ -113,11 +118,34 @@ window.MathJax = {
         }
     }
 };
+// Loads MathJax from `url`, retrying on `fallbackUrl` if that file is not there.
+function loadMathJax(url, fallbackUrl) {
+    // MathJax 4 fetches the glyph ranges of its font (\mathbb, \mathcal,
+    // stretchy arrows, the mhchem glyphs...) the first time a formula needs
+    // them, and the default source is https://cdn.jsdelivr.net/npm/@mathjax.
+    // Every copy that is not the CDN keeps them under fonts/ next to the bundle
+    // (eXeLearning's exe_math/fonts, ours from `npm run vendor`), so nothing has
+    // to leave the origin. No CDN mirrors the font packages, so the CDN keeps
+    // MathJax's own default.
+    window.MathJax.loader.paths = url === MATHJAX_CDN_URL ? {} : { fonts: '[mathjax]/fonts' };
+    var s = document.createElement("script");
+    s['async'] = "";
+    s.id = "MathJax-script";
+    s.src = url;
+    if (fallbackUrl) {
+        s.onerror = function() {
+            s.remove();
+            loadMathJax(fallbackUrl, null);
+        };
+    }
+    document.getElementsByTagName("head")[0].appendChild(s);
+}
+
 document.addEventListener("DOMContentLoaded", function() {
-    // Kept on the same major as eXeLearning's bundled copy, so what the editor
-    // previews is what the page will render. MathJax 4 dropped the es5/ prefix.
-    var url = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-svg.min.js";
+    var url = MATHJAX_LOCAL_URL;
+    var fallbackUrl = MATHJAX_CDN_URL;
     if (isInExe) {
+        fallbackUrl = null;
         url = parent.tinymce.activeEditor.settings.edicuatex_mathjax_url;
 
         // Detect app base path from edicuatex iframe URL for subdirectory deployments
@@ -149,10 +177,5 @@ document.addEventListener("DOMContentLoaded", function() {
             url = window.location.origin + appBasePath + '/' + url.substring(2);
         }
     }
-    var s;
-        s = document.createElement("script");
-        s['async'] = "";
-        s.id = "MathJax-script";
-        s.src = url;
-    document.getElementsByTagName("head")[0].appendChild(s);
+    loadMathJax(url, fallbackUrl);
 });
