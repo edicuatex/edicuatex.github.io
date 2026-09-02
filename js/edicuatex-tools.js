@@ -75,7 +75,18 @@ document.addEventListener("DOMContentLoaded", function() {
 /* MATHJAX */
 window.MathJax = {
     loader: {
-        load: ['[tex]/color', '[tex]/mhchem']
+        // 'cases' and 'mathtools' are listed in tex.packages below, but nothing
+        // ever loaded them: MathJax 3 stayed quiet about it and \begin{numcases}
+        // failed, MathJax 4 warns on the console. Load what the config claims.
+        load: ['[tex]/cases', '[tex]/color', '[tex]/mathtools', '[tex]/mhchem'],
+        // MathJax 4 fetches the glyph ranges of its font (\mathbb, \mathcal,
+        // stretchy arrows, the mhchem glyphs...) the first time a formula needs
+        // them, and the default source is https://cdn.jsdelivr.net/npm/@mathjax.
+        // eXeLearning keeps its own copy under exe_math/fonts so nothing leaves
+        // the origin in an exported package; standalone we load MathJax from a
+        // CDN that has no such directory, so the default is what works there.
+        // Mirrors eXeLearning's public/app/common/common.js.
+        paths: isInExe ? { fonts: '[mathjax]/fonts' } : {}
     },
     tex: {
         inlineMath: [
@@ -103,7 +114,9 @@ window.MathJax = {
     }
 };
 document.addEventListener("DOMContentLoaded", function() {
-    var url = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js";
+    // Kept on the same major as eXeLearning's bundled copy, so what the editor
+    // previews is what the page will render. MathJax 4 dropped the es5/ prefix.
+    var url = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-svg.min.js";
     if (isInExe) {
         url = parent.tinymce.activeEditor.settings.edicuatex_mathjax_url;
 
