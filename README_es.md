@@ -147,6 +147,26 @@ Ejemplo:
 
 ---
 
+## MathJax en local (sin CDN)
+
+El editor carga MathJax desde un CDN. Para servirlo desde tu propio sitio —una
+intranet, un equipo sin conexión o una página cuya CSP no permite orígenes
+externos— cópialo desde npm:
+
+```bash
+npm install
+npm run vendor
+```
+
+Eso rellena `js/mathjax/` (~29 MB, no versionado) y las páginas lo usan solas:
+primero prueban la copia local y recurren al CDN si no está, así que una copia
+recién clonada sigue funcionando sin configurar nada.
+
+Para actualizar, cambia las versiones en `package.json`, deja la URL de
+`js/edicuatex-tools.js` en la misma y vuelve a ejecutar los dos comandos.
+
+---
+
 ## Licencia
 
 - Código: GNU AGPL v3. Ver `LICENSE.txt`.
