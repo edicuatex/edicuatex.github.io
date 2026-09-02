@@ -167,6 +167,25 @@ Para actualizar, cambia las versiones en `package.json`, deja la URL de
 
 ---
 
+## Instalación desde npm
+
+El editor se publica como [`edicuatex`](https://www.npmjs.com/package/edicuatex),
+así que un sitio que lo integre puede fijar una versión en lugar de copiar los
+archivos a mano:
+
+```bash
+npm install edicuatex
+```
+
+Sirve `node_modules/edicuatex/` como estáticos y abre `index.html`. Es el mismo
+árbol que este repositorio; MathJax no va en el paquete y las páginas lo cogen
+del CDN salvo que ejecutes además `npm run vendor` (ver arriba).
+
+Las versiones se publican empujando una etiqueta: `git tag v1.5.0 && git push
+origin v1.5.0`.
+
+---
+
 ## Licencia
 
 - Código: GNU AGPL v3. Ver `LICENSE.txt`.
