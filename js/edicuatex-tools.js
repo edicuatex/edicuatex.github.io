@@ -87,7 +87,12 @@ window.MathJax = {
         // 'cases' and 'mathtools' are listed in tex.packages below, but nothing
         // ever loaded them: MathJax 3 stayed quiet about it and \begin{numcases}
         // failed, MathJax 4 warns on the console. Load what the config claims.
-        load: ['[tex]/cases', '[tex]/color', '[tex]/mathtools', '[tex]/mhchem'],
+        // MathJax 3 bundled assistive-mml into the combined components and every
+        // formula carried hidden MathML for screen readers. MathJax 4 does not:
+        // without this the SVG is a bare role="img" with no label and a screen
+        // reader announces nothing. Load it back.
+        load: ['[tex]/cases', '[tex]/color', '[tex]/mathtools', '[tex]/mhchem',
+               'a11y/assistive-mml'],
         // Filled in by loadMathJax(), which only knows where the glyph ranges
         // are once it knows which copy of MathJax answered.
         paths: {}
