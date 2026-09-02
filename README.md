@@ -169,6 +169,23 @@ npm run vendor
 
 ---
 
+## Install from npm
+
+The editor is published as [`edicuatex`](https://www.npmjs.com/package/edicuatex),
+so a site that embeds it can pin a version instead of copying files by hand:
+
+```bash
+npm install edicuatex
+```
+
+Serve `node_modules/edicuatex/` as static files and open `index.html`. It is the
+same tree as this repository; MathJax is not in the package, and the pages get it
+from the CDN unless you also run `npm run vendor` (see above).
+
+Releases are cut by pushing a tag: `git tag v1.5.0 && git push origin v1.5.0`.
+
+---
+
 ## License
 
 - Code: GNU AGPL v3. See `LICENSE.txt`.

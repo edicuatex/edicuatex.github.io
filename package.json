@@ -2,6 +2,14 @@
   "name": "edicuatex",
   "version": "1.5.0",
   "description": "Visual LaTeX equation editor for eXeLearning, Moodle and any web page",
+  "keywords": [
+    "latex",
+    "mathjax",
+    "equation-editor",
+    "formula",
+    "exelearning",
+    "education"
+  ],
   "license": "AGPL-3.0-or-later",
   "author": "Juan José de Haro (https://bilateria.org)",
   "homepage": "https://edicuatex.github.io/",
@@ -9,6 +17,21 @@
     "type": "git",
     "url": "git+https://github.com/edicuatex/edicuatex.github.io.git"
   },
+  "bugs": {
+    "url": "https://github.com/edicuatex/edicuatex.github.io/issues"
+  },
+  "files": [
+    "index.html",
+    "README_es.md",
+    "favicon.svg",
+    "css",
+    "icons",
+    "js",
+    "lang",
+    "menus",
+    "scripts",
+    "!js/mathjax"
+  ],
   "scripts": {
     "vendor": "node scripts/vendor-mathjax.mjs"
   },
