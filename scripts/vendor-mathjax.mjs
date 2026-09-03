@@ -73,4 +73,11 @@ copy('mathjax/a11y/assistive-mml.js', 'a11y/assistive-mml.js');
 // the package name itself, so the layout has to mirror node_modules. Only the
 // SVG halves are copied; the editor has no CHTML output.
 copy('@mathjax/mathjax-newcm-font/svg', 'fonts/mathjax-newcm-font/svg');
-copy('@mathjax/mathjax-mhchem-font-extension/svg.js', 'fonts/mathjax-mhchem-font-extension/svg.js');
+
+// One per TeX extension that brings glyphs of its own: grep input/tex/extensions
+// for 'font-extension' and this list has to match, or \require{} on the odd one
+// out renders an empty box and a 404, with nothing said on screen.
+for (const extension of ['mhchem', 'bbm', 'bboldx', 'dsfont']) {
+    copy(`@mathjax/mathjax-${extension}-font-extension/svg.js`,
+         `fonts/mathjax-${extension}-font-extension/svg.js`);
+}
