@@ -1,0 +1,26 @@
+version: 2
+
+# MathJax, its fonts, SortableJS and Tailwind are pinned in package.json and
+# copied into the repository by `npm run vendor`, so a bump is never just a
+# lockfile change: the vendored tree has to be regenerated with it. The
+# vendored-tree check refuses any pull request where the two disagree, and the
+# "Regenerate the vendored tree" workflow does the regenerating on a branch.
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    # One pull request for all four MathJax packages: they are released together
+    # and pinned to the same version, and mixing them renders nothing.
+    groups:
+      mathjax:
+        patterns:
+          - mathjax
+          - "@mathjax/*"
+
+  # The workflows pin actions by major version, which still moves under them.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

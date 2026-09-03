@@ -1,0 +1,43 @@
+name: Vendored tree
+
+# js/mathjax/ and menus/vendor/ are committed, and `npm run vendor` regenerates
+# them from the versions pinned in package.json. Nothing links the two, so a
+# bumped dependency with a stale tree looks perfectly healthy: package.json
+# would claim one version of MathJax while the pages served another. That is the
+# hand-copied-and-drifting problem the vendoring was meant to end, so this job
+# regenerates the tree and fails if what is committed does not match.
+#
+# It only reads. Regenerating on a branch is the "Regenerate the vendored tree"
+# workflow, which is started by hand.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run vendor
+      - name: The committed tree has to be what the pinned versions produce
+        run: |
+          if [ -n "$(git status --porcelain js/mathjax menus/vendor)" ]; then
+            echo "::error::js/mathjax/ or menus/vendor/ does not match the versions in package.json."
+            echo "Run 'npm install && npm run vendor' and commit the result, or start the"
+            echo "'Regenerate the vendored tree' workflow on this branch."
+            echo
+            git status --short js/mathjax menus/vendor | head -40
+            exit 1
+          fi
+          echo "The vendored tree matches package.json."
