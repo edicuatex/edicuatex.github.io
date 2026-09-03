@@ -1,6 +1,7 @@
 # Ignorar archivos locales de agente
 AGENTS.md
 agents.md
+error.log
 
 # npm
 node_modules/
