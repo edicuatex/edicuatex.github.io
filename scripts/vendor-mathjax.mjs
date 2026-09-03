@@ -43,7 +43,11 @@ rmSync(target, { recursive: true, force: true });
 // tex-svg.js is the only bundle the <script> tag loads; the rest is what MathJax
 // resolves against that directory and fetches when a formula first needs it.
 for (const file of ['tex-svg.js', 'loader.js', 'startup.js', 'core.js', 'LICENSE']) {
-    copy(join('mathjax', file), file);
+    // Not join(): what copy() takes is a package specifier, and those are always
+    // written with forward slashes. On Windows join() returns a backslashed path,
+    // where the package name no longer ends at a slash, and the whole string was
+    // handed to require.resolve — which is how the Windows build broke.
+    copy(`mathjax/${file}`, file);
 }
 copy('mathjax/input', 'input');   // TeX extensions: cases, color, mathtools, mhchem
 copy('mathjax/output', 'output');
