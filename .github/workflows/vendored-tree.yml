@@ -28,7 +28,13 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      # --include=dev is not redundant: a plain `npm ci` on the runner installed
+      # only the four runtime dependencies, and `npm run vendor` needs Tailwind,
+      # which is a devDependency. The diagnostic line below says which of the
+      # environment or the npm defaults is responsible.
+      - run: |
+          echo "node $(node -v) / npm $(npm -v) / NODE_ENV=${NODE_ENV:-unset} / omit=$(npm config get omit)"
+          npm ci --include=dev
       - run: npm run vendor
       - name: The committed tree has to be what the pinned versions produce
         run: |
