@@ -42,9 +42,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add js/mathjax menus/vendor
-          git commit -m "chore(vendor): regenerate the tree for the pinned versions
-
-Run from the Regenerate the vendored tree workflow. The contents are whatever
-\`npm run vendor\` produces from package.json, so the diff is a consequence of
-the version bump on this branch and not a change of its own."
+          git commit \
+            -m "chore(vendor): regenerate the tree for the pinned versions" \
+            -m "Run from the Regenerate the vendored tree workflow. The contents are whatever 'npm run vendor' produces from the versions in package.json, so the diff follows from the bump on this branch and is not a change of its own."
           git push
