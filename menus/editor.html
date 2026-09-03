@@ -16,8 +16,11 @@
     <script src="../lang/eu.js"></script>
     <script src="../lang/de.js"></script>
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- Served from here, not a CDN: the versions are the ones pinned in
+         package.json, so nothing this page runs can change without a commit,
+         and the editor works with no network. Regenerate with `npm run vendor`. -->
+    <link rel="stylesheet" href="vendor/tailwind.css">
+    <script src="vendor/Sortable.min.js"></script>
     
     <!-- EdiCuaTeX Menu Editor CSS file -->
     <link rel="stylesheet" href="editor.css">
