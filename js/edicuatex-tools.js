@@ -81,6 +81,11 @@ document.addEventListener("DOMContentLoaded", function() {
 // which sit at different depths, both find it.
 var MATHJAX_LOCAL_URL = new URL('mathjax/tex-svg.js', document.currentScript.src).href;
 var MATHJAX_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-svg.min.js';
+// Whether what answered is the copy vendored next to this script, the only one
+// known to ship no Speech Rule Engine (see scripts/vendor-mathjax.mjs). The CDN
+// fallback is a complete build, and inside eXeLearning the tree belongs to the
+// host, which configures its own menu; neither is touched.
+var mathjaxIsVendored = false;
 
 window.MathJax = {
     loader: {
@@ -114,7 +119,13 @@ window.MathJax = {
     },
     startup: {
         ready: () => {
+            if (mathjaxIsVendored) forgetSpeechMenuSettings();
             MathJax.startup.defaultReady();
+            // Guarded: anything thrown while tidying the menu would leave MathJax
+            // un-started, and no formula on the page would ever render.
+            if (mathjaxIsVendored) {
+                try { hideSpeechMenuEntries(); } catch (e) {}
+            }
             // This function is defined below in the main script
             if (window.initializeLatexEditor) {
                 window.initializeLatexEditor();
@@ -122,6 +133,52 @@ window.MathJax = {
         }
     }
 };
+// Drops menu settings this copy cannot honour. MathJax keeps them in
+// localStorage for the whole origin and acts on them while the document is
+// being built, so this has to run before defaultReady(): a `speech: true` left
+// by an older version, or by any other MathJax page on the same origin, would
+// ask for the Speech Rule Engine that is no longer vendored and stall the
+// typeset queue on a file that answers 404.
+//
+// `assistiveMml: false` is dropped too. Turning Speech off in MathJax's menu
+// stores it, and it would take the hidden MathML away with it -- the one thing
+// screen readers actually read -- for good, on that browser.
+function forgetSpeechMenuSettings() {
+    var KEY = 'MathJax-Menu-Settings';
+    try {
+        var stored = window.localStorage.getItem(KEY);
+        if (!stored) return;
+        var settings = JSON.parse(stored);
+        if (!settings || typeof settings !== 'object') return;
+        ['enrich', 'speech', 'braille', 'collapsible', 'explorer'].forEach(function(key) {
+            delete settings[key];
+        });
+        if (settings.assistiveMml === false) delete settings.assistiveMml;
+        if (Object.keys(settings).length) {
+            window.localStorage.setItem(KEY, JSON.stringify(settings));
+        } else {
+            window.localStorage.removeItem(KEY);
+        }
+    } catch (e) {
+        // Private mode, storage disabled or corrupt JSON: nothing to forget.
+    }
+}
+
+// Hides the menu sections backed by the Speech Rule Engine. MathJax hides them
+// by itself only when no loader is present, which is not the case here, so
+// without this the menu offers Speech, Braille and Explorer and each toggle
+// asks for a file that is not there. 'Accessibility' is the heading above the
+// three, and would otherwise sit on top of nothing.
+function hideSpeechMenuEntries() {
+    var menu = window.MathJax && window.MathJax.startup
+        && window.MathJax.startup.document && window.MathJax.startup.document.menu;
+    if (!menu || !menu.menu || typeof menu.menu.findID !== 'function') return;
+    ['Accessibility', 'Speech', 'Braille', 'Explorer'].forEach(function(id) {
+        var item = menu.menu.findID(id);
+        if (item && typeof item.hide === 'function') item.hide();
+    });
+}
+
 // Loads MathJax from `url`, retrying on `fallbackUrl` if that file is not there.
 function loadMathJax(url, fallbackUrl) {
     // MathJax 4 fetches the glyph ranges of its font (\mathbb, \mathcal,
@@ -132,6 +189,18 @@ function loadMathJax(url, fallbackUrl) {
     // to leave the origin. No CDN mirrors the font packages, so the CDN keeps
     // MathJax's own default.
     window.MathJax.loader.paths = url === MATHJAX_CDN_URL ? {} : { fonts: '[mathjax]/fonts' };
+    mathjaxIsVendored = url === MATHJAX_LOCAL_URL;
+    if (mathjaxIsVendored) {
+        // The menu's own defaults have speech, braille and the explorer on, and
+        // MathJax starts its speech worker while the document is being built --
+        // before anyone opens a menu. Hiding the entries is not enough on its
+        // own: without this it asks for sre/speech-worker.js, the request 404s
+        // and not a single formula renders.
+        window.MathJax.options = window.MathJax.options || {};
+        window.MathJax.options.menuOptions = {
+            settings: { enrich: false, speech: false, braille: false, explorer: false }
+        };
+    }
     var s = document.createElement("script");
     s['async'] = "";
     s.id = "MathJax-script";

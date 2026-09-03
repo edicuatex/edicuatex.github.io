@@ -53,12 +53,19 @@ copy('mathjax/input', 'input');   // TeX extensions: cases, color, mathtools, mh
 copy('mathjax/output', 'output');
 copy('mathjax/ui', 'ui');         // context menu
 
-// Accessibility. assistive-mml (the hidden MathML every screen reader reads) is
-// already inside tex-svg.js; these add the spoken descriptions, the keyboard
-// explorer and Nemeth braille, with speech rules for es, ca, de among others.
-// Nothing here is downloaded unless a reader opens the accessibility menu.
-copy('mathjax/a11y', 'a11y');
-copy('mathjax/sre', 'sre');
+// The hidden MathML every screen reader reads. It is the whole accessibility
+// story here: NVDA, JAWS and VoiceOver turn MathML into speech themselves, and
+// this component needs no worker and no fetch, so it survives a page opened
+// from the filesystem.
+//
+// What is deliberately not copied is the Speech Rule Engine and the rest of
+// a11y/ that gates it -- the expression explorer, Nemeth braille and MathJax's
+// own voicing. That was 5 MB of the tree, it never produced a word in this
+// editor, it builds its worker from a blob: URL that a strict CSP refuses and
+// that no file:// page can run, and it has speech rules for neither Galician
+// nor Basque, both of which this editor is translated into. eXeLearning reached
+// the same conclusion for the same reasons (their ADR-2259-03).
+copy('mathjax/a11y/assistive-mml.js', 'a11y/assistive-mml.js');
 
 // MathJax 4 splits its font into a base set inside the bundle plus ~40 glyph
 // ranges fetched on first use, and mhchem's glyphs moved into a package of
