@@ -189,7 +189,12 @@ function loadMathJax(url, fallbackUrl) {
     // to leave the origin. No CDN mirrors the font packages, so the CDN keeps
     // MathJax's own default.
     window.MathJax.loader.paths = url === MATHJAX_CDN_URL ? {} : { fonts: '[mathjax]/fonts' };
-    mathjaxIsVendored = url === MATHJAX_LOCAL_URL;
+    // Any copy that is not the full CDN build may lack the Speech Rule Engine: ours
+    // does since the engine was dropped, and so does eXeLearning's, which supplies
+    // its own MathJax through edicuatex_mathjax_url and made the same call. Only the
+    // CDN is known to carry it, so that is the one exception -- same condition as the
+    // font paths above.
+    mathjaxIsVendored = url !== MATHJAX_CDN_URL;
     if (mathjaxIsVendored) {
         // The menu's own defaults have speech, braille and the explorer on, and
         // MathJax starts its speech worker while the document is being built --
