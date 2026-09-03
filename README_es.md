@@ -19,7 +19,7 @@ Además de la integración con eXeLearning/TinyMCE, puedes integrar EdiCuaTeX en
 
 - Abrir el editor con parámetros: añade `?pm=1&origin=<TU_ORIGIN>` a la URL del editor.
   - Ejemplo local (popup): `http://localhost:8000/index.html?pm=1&origin=http%3A%2F%2Flocalhost%3A8001`
-  - Ejemplo público (GitHub Pages): `https://jjdeharo.github.io/edicuatex/index.html?pm=1&origin=https%3A%2F%2Fjjdeharo.github.io`
+  - Ejemplo público (GitHub Pages): `https://edicuatex.github.io/index.html?pm=1&origin=https%3A%2F%2Fexample.org`
   - `origin` debe ser el origen exacto (protocolo + host + puerto) de tu app receptora.
 - Botón contextual: con `pm=1` aparece el botón “Enviar a la app”.
 - Payload enviado al pulsar “Enviar”:
