@@ -29,9 +29,10 @@ jobs:
           node-version: 24
           cache: npm
       # --include=dev is not redundant: a plain `npm ci` on the runner installed
-      # only the four runtime dependencies, and `npm run vendor` needs Tailwind,
-      # which is a devDependency. The diagnostic line below says which of the
-      # environment or the npm defaults is responsible.
+      # only the four runtime dependencies, so `npm run vendor` could not find
+      # Tailwind. Why is not settled -- the run that failed reported NODE_ENV
+      # unset and an empty `omit`, so neither of the usual causes -- and the
+      # line below keeps recording both in case it changes again.
       - run: |
           echo "node $(node -v) / npm $(npm -v) / NODE_ENV=${NODE_ENV:-unset} / omit=$(npm config get omit)"
           npm ci --include=dev

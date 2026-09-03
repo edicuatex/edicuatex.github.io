@@ -18,6 +18,13 @@ updates:
         patterns:
           - mathjax
           - "@mathjax/*"
+    ignore:
+      # Tailwind 4 replaced the JavaScript config with an in-CSS one, so the
+      # bump is a rewrite of tailwind.config.js and scripts/tailwind-input.css,
+      # not an update. It is worth doing deliberately, not in a robot's pull
+      # request; the 3.x line still gets patches here.
+      - dependency-name: tailwindcss
+        update-types: [version-update:semver-major]
 
   # The workflows pin actions by major version, which still moves under them.
   - package-ecosystem: github-actions

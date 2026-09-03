@@ -81,10 +81,11 @@ document.addEventListener("DOMContentLoaded", function() {
 // which sit at different depths, both find it.
 var MATHJAX_LOCAL_URL = new URL('mathjax/tex-svg.js', document.currentScript.src).href;
 var MATHJAX_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/4.1.3/tex-svg.min.js';
-// Whether what answered is the copy vendored next to this script, the only one
-// known to ship no Speech Rule Engine (see scripts/vendor-mathjax.mjs). The CDN
-// fallback is a complete build, and inside eXeLearning the tree belongs to the
-// host, which configures its own menu; neither is touched.
+// Whether what answered may be missing the Speech Rule Engine. The name is a
+// leftover: the test is not "is it ours" but "is it anything other than the CDN
+// build", the only copy known to carry the engine. Ours dropped it (see
+// scripts/vendor-mathjax.mjs) and so did eXeLearning's, which arrives through
+// edicuatex_mathjax_url and matches neither URL constant.
 var mathjaxIsVendored = false;
 
 window.MathJax = {
